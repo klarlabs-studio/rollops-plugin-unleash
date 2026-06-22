@@ -15,7 +15,7 @@ func fakeUnleash(t *testing.T) *httptest.Server {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			w.Write([]byte(`{"environments":[{"name":"production","strategies":[{"id":"s1","name":"flexibleRollout"}]}]}`))
+			_, _ = w.Write([]byte(`{"environments":[{"name":"production","strategies":[{"id":"s1","name":"flexibleRollout"}]}]}`))
 			return
 		}
 		w.WriteHeader(http.StatusOK)

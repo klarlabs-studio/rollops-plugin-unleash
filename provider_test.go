@@ -17,10 +17,10 @@ func TestApplyFlag_UpdatesStrategyAndEnables(t *testing.T) {
 	var putBody map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls = append(calls, r.Method+" "+r.URL.Path)
-		switch {
-		case r.Method == http.MethodGet:
+		switch r.Method {
+		case http.MethodGet:
 			// Feature with a production env that already has a flexibleRollout strategy.
-			json.NewEncoder(w).Encode(feature{Environments: []struct {
+			_ = json.NewEncoder(w).Encode(feature{Environments: []struct {
 				Name       string `json:"name"`
 				Strategies []struct {
 					ID   string `json:"id"`
@@ -30,11 +30,11 @@ func TestApplyFlag_UpdatesStrategyAndEnables(t *testing.T) {
 				{Name: "production", Strategies: []struct {
 					ID   string `json:"id"`
 					Name string `json:"name"`
-				}{{ID: "strat-1", Name: "flexibleRollout"}}},
+				}{{ID: "strategy-1", Name: "flexibleRollout"}}},
 			}})
-		case r.Method == http.MethodPut:
+		case http.MethodPut:
 			b, _ := io.ReadAll(r.Body)
-			json.Unmarshal(b, &putBody)
+			_ = json.Unmarshal(b, &putBody)
 			w.WriteHeader(200)
 		default:
 			w.WriteHeader(200)
@@ -53,7 +53,7 @@ func TestApplyFlag_UpdatesStrategyAndEnables(t *testing.T) {
 		t.Errorf("rollout param = %v, want 25", params["rollout"])
 	}
 	joined := strings.Join(calls, " | ")
-	if !strings.Contains(joined, "PUT") || !strings.Contains(joined, "/environments/production/strategies/strat-1") {
+	if !strings.Contains(joined, "PUT") || !strings.Contains(joined, "/environments/production/strategies/strategy-1") {
 		t.Errorf("expected strategy PUT, calls: %s", joined)
 	}
 	if !strings.HasSuffix(calls[len(calls)-1], "/environments/production/on") {
@@ -65,7 +65,7 @@ func TestApplyFlag_CreatesStrategyWhenMissing(t *testing.T) {
 	var posted bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			json.NewEncoder(w).Encode(feature{Environments: []struct {
+			_ = json.NewEncoder(w).Encode(feature{Environments: []struct {
 				Name       string `json:"name"`
 				Strategies []struct {
 					ID   string `json:"id"`
@@ -93,7 +93,7 @@ func TestApplyFlag_CreatesStrategyWhenMissing(t *testing.T) {
 func TestApplyFlag_UnknownEnvironmentErrors(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			json.NewEncoder(w).Encode(feature{}) // no environments
+			_ = json.NewEncoder(w).Encode(feature{}) // no environments
 		}
 		w.WriteHeader(200)
 	}))
